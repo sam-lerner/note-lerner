@@ -1,45 +1,34 @@
-const notes = require('express').Router();
-const db = require('../db/db.json');
-const { writeToFile } = require('../helpers/fsUtils');
-const { readAndAppend, readFromFile } = require('../helpers/fsUtils');
+const router = require('express').Router();
+const store = require('../db/store');
 
 // Retreiving the existing notes
-notes.get('/', (req, res) => {
+router.get('/', (req, res) => {
     console.log(req.body);
-    // res.status(200).json(db);
-    readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+
+    store.getNotes()
+        .then(notes => {
+            res.json(notes)
+        })
+        .catch(err => {
+            res.status(404).json(err)
+        })
 });
 
 // Deleting notes
-notes.delete('/:id', (req, res) => {
-    console.log(req.body);
-    const deletion = req.params.id;
-    readFromFile('./db/db.json')
-    .then((data)=> JSON.parse(data))
-    .then((json) => {
-        const result = json.filter((pop) => pop.id !== deletion);
 
-        writeToFile('./db/db.json', result);
-
-        res.json(`Item${deletion} has been deleted.`)
-    });
+router.delete('/:id', (req, res) => {
+    store.removeNote(req.params.id)
+        .then(() => res.json({ ok: true }))
+        .catch(err => res.status(404).json(err))
 });
 
 // Adding new notes
-notes.post('/', (req, res) => {
-    console.log(req.body);
-    const { title, text } = req.body;
-
-    if (req.body) {
-        const newNote = {
-            title,
-            text,
-        };
-        readAndAppend(newNote, ('./db/db.json'));
-        res.status(200);
-    } else {
-        res.error(404);
-    }
+router.post('/', (req, res) => {
+    store.addNote(req.body)
+        .then(note => {
+            res.json(note)
+        })
+        .catch(err => res.status(404).json(err))
 });
 
-module.exports = notes;
+module.exports = router;

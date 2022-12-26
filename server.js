@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const api = require('./routes/routes');
 
 
@@ -26,6 +25,11 @@ app.get('/', (req, res) =>
 // GET Route for notes
 app.get('/notes', (req, res) =>
     res.sendFile(path.join(__dirname, '/public/notes.html'))
+);
+
+// GET Route for *
+app.get('*', (req, rest) =>
+    res.sendFile(path.join(__dirname, '/public/index.html'))
 );
 
 app.listen(PORT, () =>
